@@ -95,10 +95,11 @@ impl PomodoroState {
         self.transition_to_next_phase();
     }
 
-    /// Tick the timer (call every second when running)
-    pub fn tick(&mut self) {
+    /// Tick the timer (call every second when running).
+    /// Returns the new phase if a transition occurred.
+    pub fn tick(&mut self) -> Option<PomodoroPhase> {
         if self.status != PomodoroStatus::Running {
-            return;
+            return None;
         }
 
         if self.remaining_secs > 0 {
@@ -107,6 +108,9 @@ impl PomodoroState {
 
         if self.remaining_secs == 0 {
             self.transition_to_next_phase();
+            Some(self.phase)
+        } else {
+            None
         }
     }
 

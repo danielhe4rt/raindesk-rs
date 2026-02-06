@@ -156,7 +156,21 @@ pub fn skip_pomodoro_phase(state: State<AppState>) -> PomodoroState {
 #[tauri::command]
 pub fn tick_pomodoro(state: State<AppState>) -> PomodoroState {
     let mut pomodoro = state.pomodoro.lock().unwrap();
-    pomodoro.tick();
+    if let Some(new_phase) = pomodoro.tick() {
+        let (summary, body) = match new_phase {
+            PomodoroPhase::Work => ("Back to Work!", "Focus time has started."),
+            PomodoroPhase::ShortBreak => ("Short Break", "Take a quick breather."),
+            PomodoroPhase::LongBreak => ("Long Break", "Great job! Take a longer rest."),
+        };
+        std::thread::spawn(move || {
+            let _ = notify_rust::Notification::new()
+                .appname("RainDesk")
+                .summary(summary)
+                .body(body)
+                .timeout(5000)
+                .show();
+        });
+    }
     pomodoro.clone()
 }
 
